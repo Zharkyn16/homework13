@@ -1,98 +1,73 @@
-# 
-import './App.css'
-import { useState } from 'react'
+# React + TypeScript + Vite
 
-interface Todo {
-  id: number;
-  text: string;
-  completed: boolean;
-}
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-interface TodoItemProps {
-  todo: Todo;
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
-}
+Currently, two official plugins are available:
 
-const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete }) => {
-  return (
-    <li style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>
-      <input
-        type="checkbox"
-        checked={todo.completed}
-        onChange={() => onToggle(todo.id)}
-      />
-      {todo.text}
-      <button onClick={() => onDelete(todo.id)}>Сожрать</button>
-    </li>
-  );
-};
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-interface TodoFormProps {
-  onAdd: (text: string) => void;
-}
+## React Compiler
 
-const TodoForm: React.FC<TodoFormProps> = ({ onAdd }) => {
-  const [input, setInput] = useState('');
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (input.trim()) {
-      onAdd(input);
-      setInput('');
-    }
-  };
+## Expanding the ESLint configuration
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Напиши что Жора лучший"
-      />
-      <button type="submit">Добавить лэээ</button>
-    </form>
-  );
-};
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-const App: React.FC = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-  const handleAdd = (text: string) => {
-    const newTodo: Todo = {
-      id: Date.now(),
-      text,
-      completed: false,
-    };
-    setTodos([...todos, newTodo]);
-  };
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-  const handleToggle = (id: number) => {
-    setTodos(todos.map(todo =>
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
-  };
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
 
-  const handleDelete = (id: number) => {
-    setTodos(todos.filter(todo => todo.id !== id));
-  };
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-  return (
-    <div>
-      <h1>Жорик и Криштиану Роналду</h1>
-      <TodoForm onAdd={handleAdd} />
-      <ul>
-        {todos.map(todo => (
-          <TodoItem
-            key={todo.id}
-            todo={todo}
-            onToggle={handleToggle}
-            onDelete={handleDelete}
-          />
-        ))}
-      </ul>
-    </div>
-  );
-};
-export default App
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
